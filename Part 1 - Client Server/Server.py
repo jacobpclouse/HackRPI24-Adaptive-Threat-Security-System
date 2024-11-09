@@ -112,11 +112,6 @@ def save_metadata(metadata, filename):
     with open(filename, 'w') as f:
         json.dump(metadata, f, indent=4)
 
-# def draw_text_on_frame(frame, text, position, font_scale=0.7, color=(255, 255, 255), thickness=2):
-#     font = cv2.FONT_HERSHEY_SIMPLEX
-#     cv2.putText(frame, text, position, font, font_scale, color, thickness, cv2.LINE_AA)
-#     return frame
-
 def show_client(addr, client_socket):
     global frames, frame_count, start_time_dict
     try:
