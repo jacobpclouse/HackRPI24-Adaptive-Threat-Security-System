@@ -1,9 +1,13 @@
 import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
+from pathlib import Path
+
 
 # load 
-model = YOLO('Part 1 - Client Server/Models/model.pt', verbose=False)
+# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
+model = YOLO(Path('../Models/model.pt'), verbose=False)
+
 
 class Box:
 	def __init__(self, x1, y1, x2, y2):
