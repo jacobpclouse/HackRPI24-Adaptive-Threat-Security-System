@@ -1,4 +1,3 @@
-import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
