@@ -10,7 +10,8 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import pyshine as ps  # pip install pyshine
-import sqlite3  # Import SQLite library
+import sqlite3  # Import sqlite3 to work with SQLite databases
+
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime,
                                                 createFolderIfNotExists, sanitize_filename,
@@ -19,56 +20,61 @@ from Shared_Func.utility_functions import (myLogo, defang_datetime,
 OUTPUT_FOLDER_NAME = 'CLIENT_VIDEO_STORAGE'
 clients = []
 frames = {}
-frame_count = {}
-start_time_dict = {}
+frame_count = {}  # Dictionary to count frames for each client
+start_time_dict = {}  # Dictionary to store start time for each client
 createFolderIfNotExists(OUTPUT_FOLDER_NAME)
 
-# Initialize SQLite database and create table if it doesn't exist
-def init_db():
-    conn = sqlite3.connect('Camera_Data.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS CameraMetadata (
-                    id INTEGER PRIMARY KEY,
-                    camera_name TEXT,
-                    camera_ip TEXT,
-                    location TEXT,
-                    start_time TEXT,
-                    stop_time TEXT,
-                    video_filename TEXT)''')
+# SQLite database setup
+DATABASE_NAME = 'Camera_Data.db'
+TABLE_NAME = 'CameraMetadata'
+
+def setup_database():
+    """Create SQLite database and table if they do not exist."""
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(f'''
+        CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            camera_name TEXT,
+            camera_ip TEXT,
+            location TEXT,
+            start_time TEXT,
+            stop_time TEXT,
+            metadata_filename TEXT
+        )
+    ''')
     conn.commit()
     conn.close()
 
-def get_metadata(camera_name, camera_ip, location, start_time, stop_time, video_filename):
+def insert_metadata(camera_name, camera_ip, location, start_time, stop_time, metadata_filename):
+    """Insert metadata into the SQLite database."""
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+    cursor.execute(f'''
+        INSERT INTO {TABLE_NAME} (camera_name, camera_ip, location, start_time, stop_time, metadata_filename)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (camera_name, camera_ip, location, start_time.strftime("%Y-%m-%d %H:%M:%S"), 
+          stop_time.strftime("%Y-%m-%d %H:%M:%S"), metadata_filename))
+    conn.commit()
+    conn.close()
+
+def get_metadata(camera_name, camera_ip, location, start_time, stop_time):
     """Creates a metadata dictionary"""
     metadata = {
         "camera_name": camera_name,
         "camera_ip": camera_ip,
         "location": location,
         "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
-        "stop_time": stop_time.strftime("%Y-%m-%d %H:%M:%S"),
-        "video_filename": video_filename
+        "stop_time": stop_time.strftime("%Y-%m-%d %H:%M:%S")
     }
     return metadata
 
 def save_metadata(metadata, filename):
+    print('Saving Metadata...')
     """Saves metadata to a JSON file"""
     with open(filename, 'w') as f:
         json.dump(metadata, f, indent=4)
 
-def insert_metadata_to_db(metadata):
-    """Inserts metadata into the SQLite database"""
-    conn = sqlite3.connect('Camera_Data.db')
-    c = conn.cursor()
-    c.execute('''INSERT INTO CameraMetadata (camera_name, camera_ip, location, start_time, stop_time, video_filename)
-                 VALUES (?, ?, ?, ?, ?, ?)''', 
-              (metadata["camera_name"], 
-               metadata["camera_ip"], 
-               metadata["location"], 
-               metadata["start_time"], 
-               metadata["stop_time"], 
-               metadata["video_filename"]))
-    conn.commit()
-    conn.close()
 
 def show_client(addr, client_socket):
     global frames, frame_count, start_time_dict
@@ -94,6 +100,10 @@ def show_client(addr, client_socket):
             out = None
             filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
             video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
+
+            # Initialize stop time here to be overwritten later
+            stop_time = None
+            metadata_filename = video_filename.replace('.mp4', '.json')
 
             while True:
                 while len(data) < payload_size:
@@ -136,8 +146,8 @@ def show_client(addr, client_socket):
 
                 # Metadata to display on the frame -- bottom text
                 text2 = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location}"
-                height, width, _ = frame.shape
-                text_y_position = height - 50
+                height, width, _ = frame.shape  # Get the dimensions of the frame
+                text_y_position = height - 50  # Adjust this value to fine-tune the position
                 frame = ps.putBText(
                     frame,
                     text2,
@@ -153,25 +163,29 @@ def show_client(addr, client_socket):
                 frames[addr] = frame
 
                 if out is None:
+                    print("OUT IS NONE")
                     out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
                 out.write(frame)
 
-            stop_time = datetime.now()
             if out is not None:
                 out.release()
-
-            metadata = get_metadata(camera_name, camera_ip, location, start_time, stop_time, filename)
-            metadata_filename = video_filename.replace('.mp4', '.json')
-            save_metadata(metadata, metadata_filename)
-
-            # Insert metadata into the database
-            insert_metadata_to_db(metadata)
 
         del frames[addr]
         client_socket.close()
 
     except Exception as e:
         print(f"CLIENT {addr} DISCONNECTED: {e}")
+        
+        # Set the stop time before updating metadata
+        stop_time = datetime.now()
+
+        # Update and save metadata
+        if addr in start_time_dict:
+            metadata = get_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time)
+            save_metadata(metadata, metadata_filename)
+            metadata_filename = video_filename.replace('.json', '.mp4')
+            insert_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time, metadata_filename)
+
         if addr in frames:
             del frames[addr]
 
@@ -182,6 +196,7 @@ def update_display():
         image = Image.fromarray(frame_rgb)
         photo = ImageTk.PhotoImage(image)
 
+        # Adjust so it displays video feeds in a more standardized way, maybe force standard resolution so we can format the tkinter size/interface
         if addr in client_labels:
             label = client_labels[addr]
             label.config(image=photo)
@@ -215,7 +230,7 @@ def validate_ip_port():
 
 def start_server():
     """Start the server with the user-defined IP and port."""
-    init_db()  # Initialize database when server starts
+    setup_database()  # Call setup_database when the server starts
     eye_animation("--- === --- START SERVER LOG --- === ---")
     myLogo() 
     ip = ip_entry.get()
@@ -244,6 +259,7 @@ def on_stop():
     for client in clients:
         client.join()
     messagebox.showinfo("Server Status", "Server has been stopped.")
+    # eye_animation("SERVER HAS BEEN STOPPED. Close out of the Tkinter window to exit!")
     print("SERVER HAS BEEN STOPPED. Close out of the Tkinter window to exit!")
     start_button.config(state=tk.NORMAL)
     stop_button.config(state=tk.DISABLED)

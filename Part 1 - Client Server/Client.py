@@ -11,15 +11,16 @@ from PIL import Image, ImageTk
 import imutils  # pip install imutils
 import pyshine as ps
 
+
 from Shared_Func.utility_functions import (myLogo, defang_datetime,
                                                 createFolderIfNotExists, sanitize_filename,
                                                 emptyFolder, clear_screen, eye_animation, get_private_ip)
 
 # Get available webcams
 def get_available_webcams():
-    print('--- === --- === ------ === --- === ------ === --- === ---')
+    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
     print('> HEY! You may see some error messages, this because open cv is looking to see what cameras are available')
-    print('--- === --- === ------ === --- === ------ === --- === ---')
+    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
     
     webcams = []
     for i in range(10):  # Check the first 10 indices
@@ -27,9 +28,9 @@ def get_available_webcams():
         if cap.isOpened():
             webcams.append(i)
             cap.release()  # Release the camera
-    print('--- === --- === ------ === --- === ------ === --- === ---')
+    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
     print('> OK! Should be done with the error messages!')
-    print('--- === --- === ------ === --- === ------ === --- === ---')
+    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
 
     return webcams
 
@@ -185,6 +186,7 @@ def start_preview():
     preview_video(selected_webcam_split)
 
 def stop_client():
+    print('Stopping client...')
     messagebox.showinfo("Client Status", "Client has stopped streaming.")
     root.quit()
 

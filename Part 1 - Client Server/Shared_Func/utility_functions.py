@@ -32,7 +32,9 @@ def myLogo():
     print("  \____/|_| |_|_|_|_| |_|\___| |_____/ \___|\___|\__,_|_|  |_|\__|\__, | |_____/ \__, |___/\__\___|_| |_| |_|")
     print("                                                                   __/ |          __/ |                      ")
     print("                                                                  |___/          |___/                       ")
+    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
     print("Safety through Vigilance! Safety through Vigilance! Brought to you by Drew, Ben, Dayyan and Jacob")
+    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
 
 
 
@@ -124,3 +126,5 @@ def eye_animation(inputText='LOADING'):
     clear_screen()
     print(inputText)
     # print("--- === --- START SERVER LOG --- === ---")
+
+#eye_animation()
