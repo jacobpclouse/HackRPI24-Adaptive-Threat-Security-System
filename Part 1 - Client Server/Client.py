@@ -4,15 +4,16 @@ import struct
 import threading
 import cv2
 import os
+import pyshine as ps
+from PIL import Image, ImageTk
+import imutils
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from tkinter import ttk
-from PIL import Image, ImageTk
-import imutils  # pip install imutils
-import pyshine as ps
+from ttkbootstrap import Style
+from ttkbootstrap import ttk
+from pathlib import Path # for ico
 
-
-from Shared_Func.utility_functions import (myLogo, defang_datetime,
+from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
                                                 emptyFolder, clear_screen, eye_animation, get_private_ip)
 
@@ -31,21 +32,9 @@ def get_available_webcams():
     print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
     print('> OK! Should be done with the error messages!')
     print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
-
+    print(f'>>> WEBCAMS Available: {webcams} <<<')
     return webcams
 
-def get_private_ip():
-    """Gets the private IP of the client computer"""
-    try:
-        host_name = socket.gethostname()
-        print(f"Computer Hostname: {host_name}")
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        private_ip = s.getsockname()[0]
-        s.close()
-        return private_ip
-    except Exception as e:
-        return f"Unable to get IP: {e}"
 
 def returnIPandPort():
     ip = ip_entry.get()
@@ -152,20 +141,8 @@ def preview_video(selected_webcam_index):
             if not ret:
                 break
 
-            # Overlay the "PREVIEW" text on the frame
-            text = f"PREVIEW"
-            frame = ps.putBText(
-                frame,
-                text,
-                10,
-                10,
-                vspace=10,
-                hspace=1,
-                font_scale=0.7,
-                background_RGB=(0, 0, 0),
-                text_RGB=(255, 250, 250),
-                alpha=0.5
-            )
+            text_top = "PREVIEW"
+            frame = draw_text_on_frame(frame, text_top, (10, 30))
 
             # Display the frame in the Tkinter window
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -220,84 +197,112 @@ def toggle_webcam_video_options(*args):
         video_button.config(state=tk.NORMAL)
         preview_button.config(state=tk.DISABLED)  # Disable preview button
 
-# Initialize Tkinter window
-root = tk.Tk()
-root.title("Client Video Stream")
+
+
+# Initialize `ttkbootstrap` styling
+# style = Style("cosmo")  # You can choose other themes like "darkly", "superhero", "flatly"
+style = Style('darkly')  # You can set your initial theme here
+
+# Root window with `ttkbootstrap` style
+root = style.master
+root.title("Online Security System - Client Stream")
+
+# Set the icon for the window
+icon_path = Path(os.path.join("Shared_Func","eye.ico"))  # where ico is, should work on any system
+if icon_path.exists():
+    root.iconbitmap(icon_path)  # For .ico files
+else:
+    print(f"Icon file not found at {icon_path}")
 
 # Display client's private IP
-private_ip_label = tk.Label(root, text=f"Private IP: {get_private_ip()}")
+private_ip_label = ttk.Label(root, text=f"Private IP: {get_private_ip()}")
 private_ip_label.pack()
 
+def change_theme(event):
+    new_theme = theme_dropdown.get()
+    style.theme_use(new_theme)
+    root.update_idletasks()  # Refresh the GUI to apply the new theme
+
+theme_label = ttk.Label(root, text="Select Theme:")
+theme_label.pack(pady=5)
+theme_dropdown = ttk.Combobox(root, values=style.theme_names(), state="readonly")
+# theme_dropdown.set('cosmo')
+theme_dropdown.set('darkly')
+theme_dropdown.bind("<<ComboboxSelected>>", change_theme)
+theme_dropdown.pack(pady=5)
+
+
 # Reconnection label
-reconnect_label = tk.Label(root, text="")
+reconnect_label = ttk.Label(root, text="")
 reconnect_label.pack()
 
-# Start and Stop buttons
-button_frame = tk.Frame(root)
+# Start and Stop buttons with `ttkbootstrap`
+button_frame = ttk.Frame(root)
 button_frame.pack(pady=10)
 
-start_button = tk.Button(button_frame, text="START CLIENT", command=start_client, state=tk.DISABLED)
+start_button = ttk.Button(button_frame, text="START CLIENT", command=start_client, state=tk.DISABLED, style="success.TButton")
 start_button.pack(side=tk.LEFT, padx=5)
 
-stop_button = tk.Button(button_frame, text="STOP CLIENT", command=stop_client)
+stop_button = ttk.Button(button_frame, text="STOP CLIENT", command=stop_client, style="danger.TButton")
 stop_button.pack(side=tk.LEFT, padx=5)
 
-# Input for IP, Port, and Location
-ip_port_frame = tk.Frame(root)
+# Input for IP, Port, and Location with `ttkbootstrap`
+ip_port_frame = ttk.Frame(root)
 ip_port_frame.pack(pady=5)
 
-ip_label = tk.Label(ip_port_frame, text="Server IP:")
+ip_label = ttk.Label(ip_port_frame, text="Server IP:")
 ip_label.grid(row=0, column=0, padx=5, pady=5)
-ip_entry = tk.Entry(ip_port_frame)
+ip_entry = ttk.Entry(ip_port_frame)
 ip_entry.insert(0, "127.0.0.1")
 ip_entry.grid(row=0, column=1, padx=5, pady=5)
 
-port_label = tk.Label(ip_port_frame, text="Server Port:")
+port_label = ttk.Label(ip_port_frame, text="Server Port:")
 port_label.grid(row=1, column=0, padx=5, pady=5)
-port_entry = tk.Entry(ip_port_frame)
+port_entry = ttk.Entry(ip_port_frame)
 port_entry.insert(0, "9999")
 port_entry.grid(row=1, column=1, padx=5, pady=5)
 
-# New Location Entry
-location_label = tk.Label(ip_port_frame, text="Building Location:")
+# New Location Entry with `ttkbootstrap`
+location_label = ttk.Label(ip_port_frame, text="Building Location:")
 location_label.grid(row=2, column=0, padx=5, pady=5)
-location_entry = tk.Entry(ip_port_frame)
+location_entry = ttk.Entry(ip_port_frame)
 location_entry.grid(row=2, column=1, padx=5, pady=5)
 
 # Validate IP and port input as user types
 ip_entry.bind("<KeyRelease>", lambda event: validate_ip_port())
 port_entry.bind("<KeyRelease>", lambda event: validate_ip_port())
 
-# Webcam or Video Selection
+# Webcam or Video Selection with `ttkbootstrap`
 video_var = tk.StringVar(value="Webcam")
 video_option_menu = tk.OptionMenu(root, video_var, "Webcam", "Video", command=toggle_webcam_video_options)
 video_option_menu.pack(pady=5)
 
-# Webcam Selection Dropdown
-webcam_frame = tk.Frame(root)
+# Webcam Selection Dropdown with `ttkbootstrap`
+webcam_frame = ttk.Frame(root)
 webcam_frame.pack(pady=5)
-webcam_label = tk.Label(webcam_frame, text="Select Webcam:")
+webcam_label = ttk.Label(webcam_frame, text="Select Webcam:")
 webcam_label.grid(row=0, column=0, padx=5, pady=5)
 
+# List of available webcams
 save_these = get_available_webcams()
-webcam_list = [f"Webcam {i}" for i in save_these]  # Dummy webcam list, replace with actual
+webcam_list = [f"Webcam {i}" for i in save_these]
 webcam_dropdown = ttk.Combobox(webcam_frame, values=webcam_list, state="readonly")
 webcam_dropdown.grid(row=0, column=1, padx=5, pady=5)
 webcam_dropdown.current(0)
 
-# Preview Button
-preview_button = tk.Button(webcam_frame, text="Preview", command=start_preview, state=tk.NORMAL)
+# Preview Button with `ttkbootstrap`
+preview_button = ttk.Button(webcam_frame, text="Preview", command=start_preview, style="primary.TButton")
 preview_button.grid(row=0, column=2, padx=5, pady=5)
 
-# Video File Selection Button
-video_button = tk.Button(root, text="Choose Video", command=choose_video, state=tk.DISABLED)
+# Video File Selection Button with `ttkbootstrap`
+video_button = ttk.Button(root, text="Choose Video", command=choose_video, state=tk.DISABLED, style="info.TButton")
 video_button.pack(pady=5)
 
 # Video display frame
-video_frame = tk.Frame(root)
+video_frame = ttk.Frame(root)
 video_frame.pack()
 
-video_label = tk.Label(video_frame)
+video_label = ttk.Label(video_frame)
 video_label.pack()
 
 # Start the Tkinter event loop

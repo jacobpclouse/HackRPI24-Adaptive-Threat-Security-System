@@ -4,6 +4,13 @@ import re
 from pathlib import Path # used to delete old files in folder
 import time
 import socket
+import cv2
+
+# draw text on frame:
+def draw_text_on_frame(frame, text, position, font_scale=0.7, color=(255, 255, 255), thickness=2):
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame, text, position, font, font_scale, color, thickness, cv2.LINE_AA)
+    return frame
 
 #get private ip inside network of the server computer
 def get_private_ip():
@@ -126,5 +133,3 @@ def eye_animation(inputText='LOADING'):
     clear_screen()
     print(inputText)
     # print("--- === --- START SERVER LOG --- === ---")
-
-#eye_animation()
