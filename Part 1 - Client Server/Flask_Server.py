@@ -15,6 +15,9 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from pathlib import Path
 from flask import Flask, Response
+import numpy as np
+
+from Shared_Func.gunDetection import detect
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
@@ -179,11 +182,23 @@ def show_client(addr, client_socket):
                 height, width, _ = frame.shape
                 frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
 
+                # frames[addr] = frame
+
+
+                # pass frame into model here
+                result, numDetections, boxes = detect(frame)
+                frame = result.plot()
+                # end detect
+
+                # frame = np.zeros(frame.shape)
                 frames[addr] = frame
+
 
                 if out is None:
                     out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
                 out.write(frame)
+
+
 
             if out is not None:
                 out.release()
