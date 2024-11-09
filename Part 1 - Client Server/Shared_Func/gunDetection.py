@@ -3,7 +3,7 @@ from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
 # load 
-model = YOLO('AI/model.pt', verbose=False)
+model = YOLO('Part 1 - Client Server/Models/model.pt', verbose=False)
 
 class Box:
 	def __init__(self, x1, y1, x2, y2):
