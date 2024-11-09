@@ -39,7 +39,7 @@ current_columns = 3
 
 # Initialize Tkinter window
 root = ttk.Window(themename="darkly")
-root.title("Online Security System - Server")
+root.title("Crime Catcher - Server")
 
 app = Flask(__name__)  # Initialize Flask app for API
 
