@@ -14,6 +14,7 @@ from ttkbootstrap import Style
 import tkinter as tk
 import tkinter.messagebox as messagebox
 from pathlib import Path
+from flask import Flask, Response
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
@@ -36,8 +37,11 @@ default_columns = [1, 2, 3, 4]
 current_resolution = '480x320'
 current_columns = 3
 
+# Initialize Tkinter window
 root = ttk.Window(themename="darkly")
 root.title("Online Security System - Server")
+
+app = Flask(__name__)  # Initialize Flask app for API
 
 icon_path = Path(os.path.join("Shared_Func","eye.ico"))
 if icon_path.exists():
@@ -45,6 +49,7 @@ if icon_path.exists():
 else:
     print(f"Icon file not found at {icon_path}")
 root.geometry("800x600")
+
 
 private_ip_label = ttk.Label(root, text=f"Private IP: {get_private_ip()}")
 private_ip_label.pack()
@@ -139,6 +144,7 @@ def show_client(addr, client_socket):
             stop_time = None
             metadata_filename = video_filename.replace('.mp4', '.json')
 
+            # following code is based off GPT
             while True:
                 while len(data) < payload_size:
                     packet = client_socket.recv(4 * 1024)
@@ -192,9 +198,6 @@ def show_client(addr, client_socket):
             save_metadata(metadata, metadata_filename)
             insert_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time, metadata_filename)
 
-# Add this line to create a frame for video displays below the dropdowns
-# video_frame = ttk.Frame(root)
-# video_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
 def update_display():
     global current_resolution, current_columns
@@ -259,10 +262,42 @@ def validate_ip_port():
         return
     start_button.config(state=tk.NORMAL)
 
+def stream_generator(addr):
+    """Generate video frames for Flask streaming."""
+    while True:
+        if addr in frames:
+            frame = frames[addr]
+            _, jpeg = cv2.imencode('.jpg', frame)
+            frame_data = jpeg.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_data + b'\r\n')
+        else:
+            break
+
+@app.route('/stream/<int:client_id>')
+def video_feed(client_id):
+    """Flask route to stream video of a particular client by ID."""
+    if client_id < len(clients):
+        addr = list(frames.keys())[client_id]
+        return Response(stream_generator(addr),
+                        mimetype='multipart/x-mixed-replace; boundary=frame')
+    return "Client stream not available", 404
+
+# Add more existing functions here...
+
+def start_flask_server():
+    app.run(host="0.0.0.0", port=5000)
+
 def on_start():
     threading.Thread(target=start_server, daemon=True).start()
+    threading.Thread(target=start_flask_server, daemon=True).start()  # Start Flask server in background
     start_button.config(state=tk.DISABLED)
     stop_button.config(state=tk.NORMAL)
+
+# def on_start():
+#     threading.Thread(target=start_server, daemon=True).start()
+#     start_button.config(state=tk.DISABLED)
+#     stop_button.config(state=tk.NORMAL)
 
 def on_stop():
     for client in clients:
@@ -272,6 +307,8 @@ def on_stop():
     messagebox.showinfo("Server Status", "Server has been stopped.")
     start_button.config(state=tk.NORMAL)
     stop_button.config(state=tk.DISABLED)
+
+
 
 # Initialize ttkbootstrap style
 style = Style('darkly')  # You can set your initial theme here
