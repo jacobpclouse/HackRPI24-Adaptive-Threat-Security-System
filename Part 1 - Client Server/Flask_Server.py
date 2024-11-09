@@ -29,6 +29,10 @@ start_time_dict = {}
 DATABASE_NAME = 'CameraInfo.db'
 TABLE_NAME = 'VideoMetadata'
 
+FLASK_URL = "0.0.0.0"
+FLASK_PORT = 5000
+# (host="0.0.0.0", port=5000)
+
 createFolderIfNotExists(OUTPUT_FOLDER_NAME)
 
 default_resolutions = ['480x320','640x480', '800x600', '1024x768', '1280x720', '1920x1080']
@@ -39,7 +43,7 @@ current_columns = 3
 
 # Initialize Tkinter window
 root = ttk.Window(themename="darkly")
-root.title("Online Security System - Server")
+root.title("Crime Catcher - Server")
 
 app = Flask(__name__)  # Initialize Flask app for API
 
@@ -286,7 +290,8 @@ def video_feed(client_id):
 # Add more existing functions here...
 
 def start_flask_server():
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host=FLASK_URL, port=FLASK_PORT)
+    # app.run(host="0.0.0.0", port=5000) # OLD DEFAULT
 
 def on_start():
     threading.Thread(target=start_server, daemon=True).start()

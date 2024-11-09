@@ -205,7 +205,7 @@ style = Style('darkly')  # You can set your initial theme here
 
 # Root window with `ttkbootstrap` style
 root = style.master
-root.title("Online Security System - Client Stream")
+root.title("Crime Catcher - Client Stream")
 
 # Set the icon for the window
 icon_path = Path(os.path.join("Shared_Func","eye.ico"))  # where ico is, should work on any system
