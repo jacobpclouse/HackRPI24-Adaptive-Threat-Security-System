@@ -3,7 +3,7 @@ pip install --upgrade pip
 
 
 1) Create New Virtural Envir. (when first starting up -- you can use any name)
-python3 -m venv venvName
+python -m venv venvName
 
 
 2) Activate Virtual Envir. 
