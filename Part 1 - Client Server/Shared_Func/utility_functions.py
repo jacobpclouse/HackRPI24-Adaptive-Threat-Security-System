@@ -1,5 +1,9 @@
-import datetime,os,re,time,socket
+import datetime
+import os
+import re
 from pathlib import Path # used to delete old files in folder
+import time
+import socket
 
 #get private ip inside network of the server computer
 def get_private_ip():
@@ -28,9 +32,7 @@ def myLogo():
     print("  \____/|_| |_|_|_|_| |_|\___| |_____/ \___|\___|\__,_|_|  |_|\__|\__, | |_____/ \__, |___/\__\___|_| |_| |_|")
     print("                                                                   __/ |          __/ |                      ")
     print("                                                                  |___/          |___/                       ")
-    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
-    print("Safety through Vigilance! Brought to you by Drew, Ben, Dayyan and Jacob")
-    print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
+    print("Safety through Vigilance! Safety through Vigilance! Brought to you by Drew, Ben, Dayyan and Jacob")
 
 
 
@@ -122,5 +124,3 @@ def eye_animation(inputText='LOADING'):
     clear_screen()
     print(inputText)
     # print("--- === --- START SERVER LOG --- === ---")
-
-# eye_animation()
