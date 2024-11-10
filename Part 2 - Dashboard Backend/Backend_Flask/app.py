@@ -11,7 +11,7 @@ import subprocess
 import os,re
 import sqlite3
 
-PREPATH = 'C:\\Users\\clous\Downloads\\New Setup\\HackRPI24-Adaptive-Threat-Security-System\\Part 1 - Client Server\\'
+PREPATH = 'C:\\Users\\clous\\Downloads\\test bOI\\HackRPI24-Adaptive-Threat-Security-System\\Part 1 - Client Server\\'
 CAMERA_DATABASE = os.path.join(PREPATH, 'CameraInfo.db')
 VIDEO_STORAGE_PATH = os.path.join(PREPATH, 'CLIENT_VIDEO_STORAGE\\')
 
