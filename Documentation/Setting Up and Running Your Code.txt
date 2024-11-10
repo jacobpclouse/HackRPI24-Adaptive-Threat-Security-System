@@ -1,0 +1,35 @@
+# Part 1 - How to run the Client - Server
+-----------------------------------------
+1) You will setup your virtual environment using the activateVirEnv.txt and then use the pip install -r requirements.txt to install the libraries.
+If you have a gpu in your computer, you will install the requirements_GPU.txt, if you don't you will install the requirements_CPU.txt.
+
+2) Next, you will open up two terminals and activate your virtual environment inside each of them. In both Terminals you will then change directory into 'Part 1 - Client Server'.
+
+3) In the first terminal, you will use 'python Flask_Server.py' to run the server code. You will configure the IP and the Port you want to recieve the data on.
+Once you are done, you click 'START SERVER'.
+
+4) In the second terminal, you will use 'python Client.py' to run the client code. You will input the same IP and Port you used for the server to send video data.
+You can select your camera (or your video feed if you want to upload a video instead) and then configure if you want alerts to be sent out. If you do, you will need to have
+an email address configured and and setup in the passwords.json file. You can preview the camera input too. Once you are done, you click 'Start Client'.
+
+5) You should see a feed appear under the client with a red box indicating recording. You will also see a live feed appear on the Server Screen with timestamps.
+You can intiate another client feed using another camera and send it back to the server, it will only be limited by the power of your hardware.
+
+6) All videos will be stored in the CLIENT_VIDEO_STORAGE folder and the metadata should be stored in the CameraInfo database.
+
+
+--
+
+# Part 2 - How to run the Web Dashboard
+-----------------------------------------
+1) Once you have a few videos streams saved and you want to view them, you can open up two terminals. In one, activate the virtual enviornment with the 
+python requirements you installed earlier, this one will run your flask app.py file. After activating the virtual environment, you can cd into 'Part 2 - Dashboard Backend\Backend_Flask'
+and type in 'python app.py' to run the flask app
+
+2) In the second terminal, you are going to run your Vue.js/Quasar frontend for the application. You can cd into the folder 'Part 2 - Dashboard Backend\Frontend_Quasar\frontend-webdashboard'
+and then install quasar with the command 'npm install -g @quasar/cli' (NOTE: you will need to have node.js and npm installed).
+
+3) After it installs, you can use 'quasar dev' to run your application and it build and run your quasar frontend. 
+
+4) You should be able to browse all the files in the frontend database, you can use the interface to sort the files and search based on criteria.
+
