@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 # load 
-# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
+# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False, device='gpu')
 # model = YOLO(Path('../Models/model.pt'), verbose=False)
 model = YOLO(Path('Models/model.pt'), verbose=False)
 
