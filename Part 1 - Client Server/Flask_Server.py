@@ -273,14 +273,16 @@ def show_client(addr, client_socket):
                 save_metadata(metadata, metadata_filename)
                 insert_metadata(camera_name, camera_ip, location, start_time, stop_time, metadata_filename)
 
-        del frames[addr]
+        if addr in frames:
+            del frames[addr]
         client_socket.close()
 
     except Exception as e:
         print(f"CLIENT {addr} DISCONNECTED: {e}")
 
         # Cleanup
-        del frames[addr]
+        if addr in frames:
+            del frames[addr]
         if recording:
             # close video
             out.release()
