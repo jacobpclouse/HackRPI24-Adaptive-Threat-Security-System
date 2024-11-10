@@ -157,16 +157,19 @@ def show_client(addr, client_socket):
 
             data = b""  # Buffer for receiving frame data
             payload_size = struct.calcsize("Q")
+            out = None
 
             fourcc = cv2.VideoWriter_fourcc(*'H264')
-            # fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
-
-            out = None
             filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
             video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
-
-            stop_time = None
             metadata_filename = video_filename.replace('.mp4', '.json')
+
+            # fourcc = cv2.VideoWriter_fourcc(*'H264')
+            # # fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
+            # filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
+            # video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
+            # stop_time = None
+            # metadata_filename = video_filename.replace('.mp4', '.json')
             
             # Stream processing loop
             while True:
@@ -200,9 +203,41 @@ def show_client(addr, client_socket):
                     print("Motion detected in the frame!")
                     if not recording:
                         # Start recording
-                        output_video_file = f'motion_recording_{time.time()}.mp4'  # Unique file name
-                        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-                        out = cv2.VideoWriter(output_video_file, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                        output_video_file = f'motion_recording_{time.time()}.mp4'  # Unique file name #append onto the file path
+                        # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                        fourcc = cv2.VideoWriter_fourcc(*'H264')
+
+
+                        # frame processing !
+                        frame_count[addr] += 1
+                        current_time = datetime.now()
+                        elapsed_time = (current_time - start_time_dict[addr]).total_seconds()
+                        fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
+
+                        text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
+                        frame = draw_text_on_frame(frame, text_top, (10, 30))
+
+                        text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location}"
+                        height, width, _ = frame.shape
+                        frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
+                # frames[addr] = frame
+
+
+                        # out = cv2.VideoWriter(output_video_file, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                        out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                        
+                        
+                        # fourcc = cv2.VideoWriter_fourcc(*'H264')
+                        # filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
+                        # video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
+                        # stop_time = None
+                        # metadata_filename = video_filename.replace('.mp4', '.json')
+
+
+                        # out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+
+
+
                         recording = True
                         print("Recording started...")
 
@@ -230,21 +265,21 @@ def show_client(addr, client_socket):
                 height, width, _ = frame.shape
                 frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
 
+
+
                 # frames[addr] = frame
-
-
-                # pass frame into model here
-                result, numDetections, boxes = detect(frame)
-                frame = result.plot()
-                # end detect
+                # pass frame into model here --- ******
+                # result, numDetections, boxes = detect(frame)
+                # frame = result.plot()
+                # end detect --- ******
 
                 # frame = np.zeros(frame.shape)
                 frames[addr] = frame
 
 
-                if out is None:
-                    out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
-                out.write(frame)
+                # if out is None:
+                #     out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
+                # out.write(frame)
 
 
 
@@ -264,6 +299,8 @@ def show_client(addr, client_socket):
             metadata = get_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time)
             save_metadata(metadata, metadata_filename)
             insert_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time, metadata_filename)
+
+        # out.release() # for dayyan stuff?
 
 def update_display():
     global current_resolution, current_columns
