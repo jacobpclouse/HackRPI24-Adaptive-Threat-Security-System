@@ -15,6 +15,10 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from pathlib import Path
 from flask import Flask, Response
+#added by dayyan 
+from detect import detect_motion  
+# from Client import detect_motion
+
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
@@ -124,7 +128,12 @@ def save_metadata(metadata, filename):
 def show_client(addr, client_socket):
     global frames, frame_count, start_time_dict
     try:
+        cap = cv2.VideoCapture(0)
         print(f"CLIENT {addr} CONNECTED!")
+
+        # Initialize baseline for motion detection
+        baseline = None  
+        
         if client_socket:
             metadata_size = struct.unpack("Q", client_socket.recv(struct.calcsize("Q")))[0]
             metadata_bytes = client_socket.recv(metadata_size)
@@ -136,8 +145,8 @@ def show_client(addr, client_socket):
             start_time = datetime.now()
             start_time_dict[addr] = start_time
             frame_count[addr] = 0
-            
-            data = b""
+
+            data = b""  # Buffer for receiving frame data
             payload_size = struct.calcsize("Q")
             fourcc = cv2.VideoWriter_fourcc(*'H264')
 
@@ -147,8 +156,8 @@ def show_client(addr, client_socket):
 
             stop_time = None
             metadata_filename = video_filename.replace('.mp4', '.json')
-
-            # following code is based off GPT
+            
+            # Stream processing loop
             while True:
                 while len(data) < payload_size:
                     packet = client_socket.recv(4 * 1024)
@@ -166,7 +175,20 @@ def show_client(addr, client_socket):
                 frame_data = data[:msg_size]
                 data = data[msg_size:]
                 frame = pickle.loads(frame_data)
+                #Dayyan Added
+                if baseline is None: # Initialize baseline only once
+                    baseline_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    baseline_gray = cv2.GaussianBlur(baseline_gray, (21, 21), 0)  # Smooth the baseline    
+                    baseline = baseline_gray   
+                
+                # Motion detection: process the frame to detect motion
+                motion_detected, baseline = detect_motion(frame, baseline)
 
+                if motion_detected:
+                    # Handle motion detection logic here (e.g., start recording, alert, etc.)
+                    print("Motion detected in the frame!")
+
+                # Proceed with normal frame processing (display, FPS calculation, etc.)
                 frame_count[addr] += 1
                 current_time = datetime.now()
                 elapsed_time = (current_time - start_time_dict[addr]).total_seconds()
@@ -194,14 +216,13 @@ def show_client(addr, client_socket):
     except Exception as e:
         print(f"CLIENT {addr} DISCONNECTED: {e}")
         frames.clear()
-        
+
         stop_time = datetime.now()
 
         if addr in start_time_dict:
             metadata = get_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time)
             save_metadata(metadata, metadata_filename)
             insert_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time, metadata_filename)
-
 
 def update_display():
     global current_resolution, current_columns
