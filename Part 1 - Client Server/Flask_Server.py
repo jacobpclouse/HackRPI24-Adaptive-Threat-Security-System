@@ -18,7 +18,8 @@ from flask import Flask, Response
 #added by dayyan 
 from detect import detect_motion  
 # from Client import detect_motion
-
+#IMPORT TIME 
+import time
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
@@ -133,6 +134,9 @@ def show_client(addr, client_socket):
 
         # Initialize baseline for motion detection
         baseline = None  
+        # Initialize variables for recording state
+        recording = False
+        out = None # VideoWriter object
         
         if client_socket:
             metadata_size = struct.unpack("Q", client_socket.recv(struct.calcsize("Q")))[0]
@@ -187,6 +191,24 @@ def show_client(addr, client_socket):
                 if motion_detected:
                     # Handle motion detection logic here (e.g., start recording, alert, etc.)
                     print("Motion detected in the frame!")
+                    if not recording:
+                        # Start recording
+                        output_video_file = f'motion_recording_{time.time()}.mp4'  # Unique file name
+                        fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                        out = cv2.VideoWriter(output_video_file, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                        recording = True
+                        print("Recording started...")
+
+                    # Write the current frame to the video file
+                    out.write(frame) 
+
+                else:  # Motion not detected
+                    if recording:
+                    # Stop recording
+                        out.release()
+                        recording = False
+                        print("Recording stopped.")
+                    
 
                 # Proceed with normal frame processing (display, FPS calculation, etc.)
                 frame_count[addr] += 1
