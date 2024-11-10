@@ -21,7 +21,8 @@ def read_metadata_from_db():
                   f"Location: {row[3]}, Start Time: {row[4]}, Stop Time: {row[5]}, "
                   f"Video Filename: {row[6]}")
     else:
-        print("No entries found in the CameraMetadata database.")
+        print(f"No entries found in the {CAMERA_DATABASE} database.")
+        # print("No entries found in the CameraMetadata database.")
 
     conn.close()
 
