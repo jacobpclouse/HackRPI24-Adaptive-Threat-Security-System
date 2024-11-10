@@ -78,20 +78,21 @@ resolution_dropdown = ttk.Combobox(root, values=default_resolutions, state="read
 resolution_dropdown.set(current_resolution)
 resolution_dropdown.pack(pady=5)
 
-columns_label = ttk.Label(root, text="Select Columns:")
-columns_label.pack(pady=5)
-columns_dropdown = ttk.Combobox(root, values=default_columns, state="readonly")
-columns_dropdown.set(current_columns)
-columns_dropdown.pack(pady=5)
+# columns_label = ttk.Label(root, text="Select Columns:")
+# columns_label.pack(pady=5)
+# columns_dropdown = ttk.Combobox(root, values=default_columns, state="readonly")
+# columns_dropdown.set(current_columns)
+# columns_dropdown.pack(pady=5)
 
 def update_settings():
     global current_resolution, current_columns
     current_resolution = resolution_dropdown.get()
-    current_columns = int(columns_dropdown.get())
-    print(f"Update Setting: current_resolution {current_resolution}, current_columns {current_columns}")
+    # current_columns = int(columns_dropdown.get())
+    # print(f"Update Setting: current_resolution {current_resolution}, current_columns {current_columns}")
+    print(f"Update Setting: current_resolution {current_resolution}")
 
 resolution_dropdown.bind("<<ComboboxSelected>>", lambda e: update_settings())
-columns_dropdown.bind("<<ComboboxSelected>>", lambda e: update_settings())
+# columns_dropdown.bind("<<ComboboxSelected>>", lambda e: update_settings())
 
 def setup_database():
     conn = sqlite3.connect(DATABASE_NAME)
@@ -415,12 +416,57 @@ def change_theme(event):
     style.theme_use(new_theme)
     root.update_idletasks()  # Refresh the GUI to apply the new theme
 
-theme_label = ttk.Label(root, text="Select Theme:")
-theme_label.pack(pady=5)
-theme_dropdown = ttk.Combobox(root, values=style.theme_names(), state="readonly")
-theme_dropdown.set('darkly')
-theme_dropdown.bind("<<ComboboxSelected>>", change_theme)
-theme_dropdown.pack(pady=5)
+# theme_label = ttk.Label(root, text="Select Theme:")
+# theme_label.pack(pady=5)
+# theme_dropdown = ttk.Combobox(root, values=style.theme_names(), state="readonly")
+# theme_dropdown.set('darkly')
+# theme_dropdown.bind("<<ComboboxSelected>>", change_theme)
+# theme_dropdown.pack(pady=5)
+
+
+# -------
+# Add a label and entry for the alert email
+email_label = ttk.Label(root, text="Enter Alert Email Address:")
+email_label.pack(pady=5)
+email_entry = ttk.Entry(root, width=30)
+email_entry.insert(0, ALERT_EMAIL)  # Set default email in the entry box
+email_entry.pack(pady=5)
+
+def update_alert_email():
+    global ALERT_EMAIL
+    ALERT_EMAIL = email_entry.get()
+    print(f"Updated ALERT_EMAIL: {ALERT_EMAIL}")
+
+# Create a frame to hold the Update Email and Toggle Alert buttons side by side
+email_button_frame = ttk.Frame(root)
+email_button_frame.pack(pady=5)
+
+# Add a button to update the email
+update_email_button = ttk.Button(email_button_frame, text="Update Email", command=update_alert_email)
+update_email_button.pack(side=LEFT, padx=5)
+
+# Define the toggle function for the alert email
+def toggle_alert_email():
+    global DO_ALERT_EMAIL
+    DO_ALERT_EMAIL = not DO_ALERT_EMAIL  # Toggle the boolean
+    # Update button text
+    alert_toggle_button.config(text=f"Alert is {'On' if DO_ALERT_EMAIL else 'Off'}")
+    # Update button style based on the state
+    if DO_ALERT_EMAIL:
+        alert_toggle_button.config(style="danger.TButton")  # Red color
+    else:
+        alert_toggle_button.config(style="primary.TButton")  # Blue color
+    print(f"DO_ALERT_EMAIL set to {DO_ALERT_EMAIL}")
+
+# Add the Toggle Alert Button next to the Update Email button
+alert_toggle_button = ttk.Button(
+    email_button_frame,
+    text=f"Alert is {'On' if DO_ALERT_EMAIL else 'Off'}",
+    command=toggle_alert_email,
+    style="primary.TButton"  # Initial style based on DO_ALERT_EMAIL being False
+)
+alert_toggle_button.pack(side=LEFT, padx=5)
+# -------
 
 # Start and Stop buttons
 button_frame = ttk.Frame(root)
