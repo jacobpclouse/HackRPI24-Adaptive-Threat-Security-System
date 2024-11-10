@@ -169,6 +169,8 @@ def show_client(addr, client_socket):
             video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
             metadata_filename = video_filename.replace('.mp4', '.json')
 
+            # video_recording_stop_time = datetime.now()
+
             time_of_last_email = datetime.now()
 
             time_of_last_detection = datetime.now()
