@@ -1,6 +1,6 @@
 /venvName
 venvName
 *.mp4
-*.json
 *.db
 *.pyc
+passwords.json
