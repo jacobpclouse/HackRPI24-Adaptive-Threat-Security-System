@@ -30,7 +30,7 @@ from Shared_Func.utility_functions import (myLogo,draw_text_on_frame,
 
 
 
-ALERT_EMAIL = "sagejpc@gmail.com"
+ALERT_EMAIL = "sagejpc5@gmail.com"
 # ALERT_EMAIL = "benherman345@gmail.com"
 DO_ALERT_EMAIL = False
 
