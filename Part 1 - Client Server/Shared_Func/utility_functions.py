@@ -1,13 +1,14 @@
-import datetime
+# import datetime
 import os
-import re
-from pathlib import Path # used to delete old files in folder
+# import re
+# from pathlib import Path # used to delete old files in folder
 import time
 import socket
 import cv2
 
 # draw text on frame:
-def draw_text_on_frame(frame, text, position, font_scale=0.7, color=(255, 255, 255), thickness=2):
+def draw_text_on_frame(frame, text, position, font_scale=0.5, color=(255, 255, 255), thickness=2):
+# def draw_text_on_frame(frame, text, position, font_scale=0.7, color=(255, 255, 255), thickness=2):
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame, text, position, font, font_scale, color, thickness, cv2.LINE_AA)
     return frame
@@ -52,17 +53,6 @@ def myLogo():
 
 
 
-# --- Function to Defang date time ---
-def defang_datetime():
-    current_datetime = f"_{datetime.datetime.now()}"
-
-    current_datetime = current_datetime.replace(":", "_")
-    current_datetime = current_datetime.replace(".", "-")
-    current_datetime = current_datetime.replace(" ", "_")
-
-    return current_datetime
-
-
 # --- Function to create a folder if it does not exist ---
 def createFolderIfNotExists(folder_path):
     if not os.path.exists(folder_path):
@@ -71,18 +61,6 @@ def createFolderIfNotExists(folder_path):
     else:
         print(f"Folder '{folder_path}' already exists.")
 
-# Take out any invalid characters for a filename
-def sanitize_filename(filename: str) -> str:
-    # Replace invalid characters with an underscore
-    sanitized = re.sub(r'[\/:*?"<>|]', '_', filename)
-    # Optionally strip leading/trailing spaces and dots
-    sanitized = sanitized.strip().strip('.')
-    return sanitized
-
-
-# --- Function to delete files inside directory (without deleting directory itself) ---
-def emptyFolder(directoryPath):
-    [f.unlink() for f in Path(directoryPath).glob("*") if f.is_file()] 
 
 def clear_screen():
     # Clears the terminal screen
