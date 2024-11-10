@@ -193,6 +193,13 @@ def show_client(addr, client_socket):
                 data = data[msg_size:]
                 frame = pickle.loads(frame_data)
 
+                #resize to allow for higher resilution text
+                (h, w) = frame.shape[:2]
+                new_width = 1600
+                aspect_ratio = h / w
+                new_height = int(new_width * aspect_ratio)
+                frame = cv2.resize(frame, (new_width, new_height))
+
                 # Detect motion and handle recording
                 motion_detected, baseline = detect_motion(frame, baseline, 5)
                 if motion_detected:
@@ -223,13 +230,6 @@ def show_client(addr, client_socket):
                 elapsed_time = (current_time - true_start_time).total_seconds()
                 fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
 
-                #resize to allow for higher resilution text
-                (h, w) = frame.shape[:2]
-                new_width = 1600
-                aspect_ratio = h / w
-                new_height = int(new_width * aspect_ratio)
-                frame = cv2.resize(frame, (new_width, new_height))
-
                 # Add top and bottom overlay text
                 text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
                 frame = draw_text_on_frame(frame, text_top, (10, 40))
@@ -257,8 +257,8 @@ def show_client(addr, client_socket):
                         time_of_last_detection = datetime.now()
                         image_processing_thread.start()
 
-                    
                     # end detect
+                    print(out, frame)
                     out.write(frame)
 
                 # Store the frame for UI display
