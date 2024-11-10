@@ -14,8 +14,9 @@ from ttkbootstrap import Style
 import tkinter as tk
 import tkinter.messagebox as messagebox
 from pathlib import Path
-from flask import Flask, Response
+from flask import Flask, Response,jsonify
 import numpy as np
+from flask_cors import CORS
 
 from Shared_Func.gunDetection import detect
 
@@ -49,6 +50,7 @@ root = ttk.Window(themename="darkly")
 root.title("Crime Catcher - Server")
 
 app = Flask(__name__)  # Initialize Flask app for API
+CORS(app)  # This will enable CORS for all routes
 
 icon_path = Path(os.path.join("Shared_Func","eye.ico"))
 if icon_path.exists():
@@ -142,7 +144,9 @@ def show_client(addr, client_socket):
             
             data = b""
             payload_size = struct.calcsize("Q")
-            fourcc = cv2.VideoWriter_fourcc(*'H264')
+
+            # fourcc = cv2.VideoWriter_fourcc(*'H264')
+            fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
 
             out = None
             filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
@@ -293,6 +297,12 @@ def stream_generator(addr):
         else:
             break
 
+
+# @app.route('/stream/0')
+# def stream_video():
+#     return Response(open("path_to_video.mp4", "rb"), mimetype="video/mp4")
+
+
 @app.route('/stream/<int:client_id>')
 def video_feed(client_id):
     """Flask route to stream video of a particular client by ID."""
@@ -302,7 +312,6 @@ def video_feed(client_id):
                         mimetype='multipart/x-mixed-replace; boundary=frame')
     return "Client stream not available", 404
 
-# Add more existing functions here...
 
 def start_flask_server():
     app.run(host=FLASK_URL, port=FLASK_PORT)
