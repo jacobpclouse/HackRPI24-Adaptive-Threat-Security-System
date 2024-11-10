@@ -329,6 +329,8 @@ def update_display():
             print("uh oh we hit the exception in update display!:")
             print(e)
 
+    validate_ip_port()
+
     # Update every 33 milliseconds
     video_frame.after(33, update_display)
 

@@ -307,5 +307,7 @@ video_frame.pack()
 video_label = ttk.Label(video_frame)
 video_label.pack()
 
+validate_ip_port()
+
 # Start the Tkinter event loop
 root.mainloop()
