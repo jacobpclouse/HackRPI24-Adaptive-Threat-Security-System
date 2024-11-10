@@ -38,7 +38,6 @@ OUTPUT_FOLDER_NAME = 'CLIENT_VIDEO_STORAGE'
 clients = []
 frames = {}
 frame_count = {}
-start_time_dict = {}
 
 DATABASE_NAME = 'CameraInfo.db'
 TABLE_NAME = 'VideoMetadata'
@@ -137,17 +136,11 @@ def save_metadata(metadata, filename):
         json.dump(metadata, f, indent=4)
 
 def show_client(addr, client_socket):
-    global frames, frame_count, start_time_dict
+    global frames, frame_count
     try:
         cap = cv2.VideoCapture(0)
         print(f"CLIENT {addr} CONNECTED!")
-
-        # Initialize baseline for motion detection
-        baseline = None  
-        # Initialize variables for recording state
         recording = False
-        out = None # VideoWriter object
-        
         if client_socket:
             metadata_size = struct.unpack("Q", client_socket.recv(struct.calcsize("Q")))[0]
             metadata_bytes = client_socket.recv(metadata_size)
@@ -156,20 +149,21 @@ def show_client(addr, client_socket):
             camera_name = client_metadata["camera_name"]
             location = client_metadata["location"]
             camera_ip = client_metadata["camera_ip"]
+            true_start_time = datetime.now()
             start_time = datetime.now()
-            start_time_dict[addr] = start_time
             frame_count[addr] = 0
 
             data = b""  # Buffer for receiving frame data
             payload_size = struct.calcsize("Q")
-            out = None
+            out = None # VideoWriter object
+
+            # Initialize baseline for motion detection
+            baseline = None  
+            # Initialize variables for recording state
 
             fourcc = cv2.VideoWriter_fourcc(*'H264')
-            filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
-            video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
-            metadata_filename = video_filename.replace('.mp4', '.json')
 
-            # video_recording_stop_time = datetime.now()
+            video_recording_stop_time = datetime.now()
 
             time_of_last_email = datetime.now()
 
@@ -198,30 +192,34 @@ def show_client(addr, client_socket):
                 data = data[msg_size:]
                 frame = pickle.loads(frame_data)
 
-                # Initialize baseline for motion detection if needed
-                if baseline is None:
-                    baseline_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    baseline_gray = cv2.GaussianBlur(baseline_gray, (21, 21), 0)
-                    baseline = baseline_gray
-
                 # Detect motion and handle recording
-                motion_detected, baseline = detect_motion(frame, baseline)
-                if motion_detected and not recording:
-                    # Start recording if motion is detected
-                    out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
-                    recording = True
-                    print("Recording started...")
-
-                elif not motion_detected and recording:
+                motion_detected, baseline = detect_motion(frame, baseline, 5)
+                if motion_detected:
+                    video_recording_stop_time = datetime.now()
+                    if not recording:
+                        # Start recording if motion is detected
+                        start_time = datetime.now()
+                        filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
+                        video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
+                        metadata_filename = video_filename.replace('.mp4', '.json')
+                        out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                        recording = True
+                        print("Recording started...")
+                elif recording and (datetime.now() - video_recording_stop_time).total_seconds() > 10:
                     # Stop recording if no motion detected
                     out.release()
+                    out = None
                     recording = False
                     print("Recording stopped.")
+                    stop_time = datetime.now()
+                    metadata = get_metadata(camera_name, camera_ip, location, start_time, stop_time)
+                    save_metadata(metadata, metadata_filename)
+                    insert_metadata(camera_name, camera_ip, location, start_time, stop_time, metadata_filename)
 
                 # Always add overlay text to the frame
                 frame_count[addr] += 1
                 current_time = datetime.now()
-                elapsed_time = (current_time - start_time_dict[addr]).total_seconds()
+                elapsed_time = (current_time - true_start_time).total_seconds()
                 fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
 
                 # Add top and bottom overlay text
@@ -258,24 +256,35 @@ def show_client(addr, client_socket):
                 frames[addr] = frame
 
             # Cleanup after the loop
-            if out is not None:
+            if recording:
                 out.release()
+                # save metaData
+                stop_time = datetime.now()
+                metadata = get_metadata(camera_name, camera_ip, location, start_time, stop_time)
+                save_metadata(metadata, metadata_filename)
+                insert_metadata(camera_name, camera_ip, location, start_time, stop_time, metadata_filename)
 
         del frames[addr]
         client_socket.close()
 
     except Exception as e:
         print(f"CLIENT {addr} DISCONNECTED: {e}")
-        frames.clear()
 
-        stop_time = datetime.now()
-
-        if addr in start_time_dict:
-            metadata = get_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time)
+        # Cleanup
+        del frames[addr]
+        if recording:
+            # close video
+            out.release()
+            # save metaData
+            stop_time = datetime.now()
+            metadata = get_metadata(camera_name, camera_ip, location, start_time, stop_time)
             save_metadata(metadata, metadata_filename)
-            insert_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time, metadata_filename)
-
-        # out.release() # for dayyan stuff?
+            insert_metadata(camera_name, camera_ip, location, start_time, stop_time, metadata_filename)
+        
+        try:
+            client_socket.close()
+        except:
+            pass
 
 def update_display():
     global current_resolution, current_columns

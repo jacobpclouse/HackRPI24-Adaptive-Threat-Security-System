@@ -2,7 +2,7 @@ import cv2
 # from gunDetection import detect
 from detect import detect_motion
 
-cam = cv2.VideoCapture(1)
+cam = cv2.VideoCapture(0)
 
 if not cam.isOpened():
     print("Error: Could not open camera.")
