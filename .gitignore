@@ -6,3 +6,4 @@ CLIENT_VIDEO_STORAGE
 *.db
 *.pyc
 package-lock.json
+passwords.json
