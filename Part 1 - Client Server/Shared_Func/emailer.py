@@ -12,6 +12,7 @@ with open(Path("passwords.json")) as f:
 	password = json.load(f)["gmail"]
 
 def sendEmail(to:str, subject:str, body:str, image:np.ndarray|None = None):
+	print(body)
 	msg = MIMEMultipart()
 	msg['Subject'] = subject
 	msg['From'] = me
