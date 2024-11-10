@@ -411,10 +411,10 @@ def on_stop():
 # Initialize ttkbootstrap style
 style = Style('darkly')  # You can set your initial theme here
 
-def change_theme(event):
-    new_theme = theme_dropdown.get()
-    style.theme_use(new_theme)
-    root.update_idletasks()  # Refresh the GUI to apply the new theme
+# def change_theme(event):
+#     new_theme = theme_dropdown.get()
+#     style.theme_use(new_theme)
+#     root.update_idletasks()  # Refresh the GUI to apply the new theme
 
 # theme_label = ttk.Label(root, text="Select Theme:")
 # theme_label.pack(pady=5)
