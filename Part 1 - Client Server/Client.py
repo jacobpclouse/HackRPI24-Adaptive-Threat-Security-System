@@ -19,6 +19,8 @@ from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on
                                                 createFolderIfNotExists, sanitize_filename,
                                                 emptyFolder, clear_screen, eye_animation, get_private_ip)
 
+GLOBAL_WIDTH = 480
+
 # Get available webcams
 def get_available_webcams():
     print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
@@ -100,7 +102,8 @@ def start_client():
                 img, frame = vid.read()
                 if frame is None:
                     break
-                frame = imutils.resize(frame, width=720)
+                frame = imutils.resize(frame, width=GLOBAL_WIDTH)
+                # frame = imutils.resize(frame, width=720)
                 a = pickle.dumps(frame)
                 message = struct.pack("Q", len(a)) + a
                 client_socket.sendall(message)

@@ -297,20 +297,24 @@ def update_display():
         widget.destroy()
 
     for addr in list(frames.keys()):
-        frame = frames[addr]
-        frame_resized = cv2.resize(frame, (res_width, res_height))
-        frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-        image = Image.fromarray(frame_rgb)
-        photo = ImageTk.PhotoImage(image)
+        try:
+            frame = frames[addr]
+            frame_resized = cv2.resize(frame, (res_width, res_height))
+            frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(frame_rgb)
+            photo = ImageTk.PhotoImage(image)
 
-        label = ttk.Label(video_frame, image=photo)
-        label.image = photo
-        label.grid(row=row, column=col, padx=5, pady=5)
+            label = ttk.Label(video_frame, image=photo)
+            label.image = photo
+            label.grid(row=row, column=col, padx=5, pady=5)
 
-        col += 1
-        if col >= max_columns:
-            col = 0
-            row += 1
+            col += 1
+            if col >= max_columns:
+                col = 0
+                row += 1
+        except:
+            print("uh oh we hit the exception in update display!")
+            pass
 
     # Update every 33 milliseconds
     video_frame.after(33, update_display)

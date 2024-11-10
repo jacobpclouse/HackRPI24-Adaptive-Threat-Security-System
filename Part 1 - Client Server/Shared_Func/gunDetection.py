@@ -26,7 +26,8 @@ def detect(img, result:list[tuple[Results, int, list[Box]]]|None = None) -> tupl
 	If you pass in a list into the second pram it will append the output to the list instead
 	"""
 	modelResult:Results = model.predict(img, verbose=False, imgsz=640)[0]
-	boxesNp = modelResult.boxes.xyxy.numpy()
+	boxesNp = modelResult.boxes.xyxy.cpu().numpy()
+	# boxesNp = modelResult.boxes.xyxy.numpy()
 	numDetections = boxesNp.shape[0]
 	boxes = []
 	for i in range(numDetections):
