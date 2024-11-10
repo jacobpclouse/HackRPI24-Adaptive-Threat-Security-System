@@ -4,9 +4,9 @@ from pathlib import Path
 
 
 # load 
-model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
+# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
 # model = YOLO(Path('../Models/model.pt'), verbose=False)
-# model = YOLO(Path('Models/model.pt'), verbose=False)
+model = YOLO(Path('Models/model.pt'), verbose=False)
 
 
 class Box:
@@ -24,7 +24,7 @@ def detect(img, result:list[tuple[Results, int, list[Box]]]|None = None) -> tupl
 	\tA list of Box classes which contains the gun locations
 	If you pass in a list into the second pram it will append the output to the list instead
 	"""
-	modelResult:Results = model(img, verbose=False)[0]
+	modelResult:Results = model.predict(img, verbose=False, imgsz=640)[0]
 	boxesNp = modelResult.boxes.xyxy.numpy()
 	numDetections = boxesNp.shape[0]
 	boxes = []

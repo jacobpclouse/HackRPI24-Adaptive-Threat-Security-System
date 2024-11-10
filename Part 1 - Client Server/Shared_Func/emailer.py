@@ -11,9 +11,9 @@ me = "rpi.crime.catcher@gmail.com"
 with open(Path("passwords.json")) as f:
 	password = json.load(f)["gmail"]
 
-def sendEmail(to:str, body:str, image:np.ndarray|None = None):
+def sendEmail(to:str, subject:str, body:str, image:np.ndarray|None = None):
 	msg = MIMEMultipart()
-	msg['Subject'] = 'Detected Weapon'
+	msg['Subject'] = subject
 	msg['From'] = me
 	msg['To'] = to
 

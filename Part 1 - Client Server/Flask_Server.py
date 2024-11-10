@@ -15,13 +15,18 @@ import tkinter as tk
 import tkinter.messagebox as messagebox
 from pathlib import Path
 from flask import Flask, Response
-import numpy as np
 
+from Shared_Func.emailer import sendEmail
 from Shared_Func.gunDetection import detect
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
                                                 emptyFolder, clear_screen, eye_animation, get_private_ip)
+
+
+ALERT_EMAIL = "benherman345@gmail.com"
+DO_ALERT_EMAIL = False
+
 
 OUTPUT_FOLDER_NAME = 'CLIENT_VIDEO_STORAGE'
 clients = []
@@ -151,7 +156,8 @@ def show_client(addr, client_socket):
             stop_time = None
             metadata_filename = video_filename.replace('.mp4', '.json')
 
-            
+            time_of_last_email = datetime.now()
+
             image_processing_boxs = []
             image_processing_thread_result = None
             image_processing_thread = None
@@ -190,14 +196,12 @@ def show_client(addr, client_socket):
                 
                 # pass frame into model here
                 if image_processing_thread is not None and not image_processing_thread.is_alive():
-                    try:
-                        result, numDetections, boxes = image_processing_thread_result[0]
-                        print(numDetections)
-                    except:
-                        print(image_processing_thread_result[0])
-                    image_processing_boxs = boxes
+                    result, numDetections, boxes = image_processing_thread_result[0]
                     image_processing_thread = None
-                    
+                    image_processing_boxs = boxes
+                    if DO_ALERT_EMAIL and numDetections > 0 and (datetime.now() - time_of_last_email).total_seconds() > 10:
+                        time_of_last_email = datetime.now()
+                        threading.Thread(target=sendEmail, args=(ALERT_EMAIL, "Detected Weapon", text_bottom, result.plot())).start()
 
                 if image_processing_thread == None:
                     image_processing_thread_result = []
@@ -205,21 +209,15 @@ def show_client(addr, client_socket):
                     image_processing_thread.start()
 
                 for box in image_processing_boxs:
-                    frame = cv2.rectangle(frame, (box.x1, box.y1), (box.x2, box.y2), (0, 0, 255), 4)
-
-                # result, numDetections, boxes = detect(frame)
-                # frame = result.plot()
+                    frame = cv2.rectangle(frame, (box.x1, box.y1), (box.x2, box.y2), (0, 0, 255), 2)
 
                 # end detect
 
                 frames[addr] = frame
 
-
                 if out is None:
                     out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
                 out.write(frame)
-
-
 
             if out is not None:
                 out.release()
