@@ -245,7 +245,7 @@ def show_client(addr, client_socket):
                         image, numDetections, boxes = image_processing_thread_result[0]
                         image_processing_thread = None
                         image_processing_boxs = boxes
-                        if DO_ALERT_EMAIL and numDetections > 0 and (datetime.now() - time_of_last_email).total_seconds() > 30:
+                        if DO_ALERT_EMAIL and numDetections > 0 and (datetime.now() - time_of_last_email).total_seconds() > 10:
                             time_of_last_email = datetime.now()
                             threading.Thread(target=sendEmail, args=(ALERT_EMAIL, "Detected Weapon", text_bottom, image)).start()
                     for box in image_processing_boxs:
@@ -258,7 +258,6 @@ def show_client(addr, client_socket):
                         image_processing_thread.start()
 
                     # end detect
-                    print(out, frame)
                     out.write(frame)
 
                 # Store the frame for UI display

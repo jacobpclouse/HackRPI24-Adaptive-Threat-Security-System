@@ -5,9 +5,9 @@ import cv2
 import torch
 
 # load 
-model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
+# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
 # model = YOLO(Path('../Models/model.pt'), verbose=False)
-# model = YOLO(Path('Models/model.pt'), verbose=False)
+model = YOLO(Path('Models/model.pt'), verbose=False)
 if torch.cuda.is_available():
     model.to('cuda')
 
