@@ -10,9 +10,9 @@ if not cam.isOpened():
 while True:
 	ret, frame = cam.read()
 	if (not ret): exit(1)
-	
-	result, numDetections, boxes = detect(frame)
-
+	out = []
+	detect(frame, out)
+	result, numDetections, boxes = out[0]
 	annotated_img = result.plot()
 
 	cv2.imshow("output", annotated_img)

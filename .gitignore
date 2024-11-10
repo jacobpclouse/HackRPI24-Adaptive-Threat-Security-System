@@ -4,3 +4,4 @@ venvName
 *.db
 *.pyc
 passwords.json
+/CLIENT_VIDEO_STORAGE

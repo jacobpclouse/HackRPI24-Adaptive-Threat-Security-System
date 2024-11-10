@@ -151,6 +151,11 @@ def show_client(addr, client_socket):
             stop_time = None
             metadata_filename = video_filename.replace('.mp4', '.json')
 
+            
+            image_processing_boxs = []
+            image_processing_thread_result = None
+            image_processing_thread = None
+
             # following code is based off GPT
             while True:
                 while len(data) < payload_size:
@@ -182,15 +187,31 @@ def show_client(addr, client_socket):
                 height, width, _ = frame.shape
                 frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
 
-                # frames[addr] = frame
-
-
+                
                 # pass frame into model here
-                result, numDetections, boxes = detect(frame)
-                frame = result.plot()
+                if image_processing_thread is not None and not image_processing_thread.is_alive():
+                    try:
+                        result, numDetections, boxes = image_processing_thread_result[0]
+                        print(numDetections)
+                    except:
+                        print(image_processing_thread_result[0])
+                    image_processing_boxs = boxes
+                    image_processing_thread = None
+                    
+
+                if image_processing_thread == None:
+                    image_processing_thread_result = []
+                    image_processing_thread = threading.Thread(target=detect, args=(frame, image_processing_thread_result))
+                    image_processing_thread.start()
+
+                for box in image_processing_boxs:
+                    frame = cv2.rectangle(frame, (box.x1, box.y1), (box.x2, box.y2), (0, 0, 255), 4)
+
+                # result, numDetections, boxes = detect(frame)
+                # frame = result.plot()
+
                 # end detect
 
-                # frame = np.zeros(frame.shape)
                 frames[addr] = frame
 
 

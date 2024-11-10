@@ -19,7 +19,7 @@ def sendEmail(to:str, body:str, image:np.ndarray|None = None):
 
 	msg.attach(MIMEText(body))
 
-	if image != None:
+	if image is not None:
 		_, image_encoded = cv2.imencode('.jpg', image)  # Encode as JPEG format
 		msg.attach(MIMEImage(image_encoded.tobytes(), name="gunImage.jpg"))
 

@@ -4,30 +4,33 @@ from pathlib import Path
 
 
 # load 
-# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
+model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
 # model = YOLO(Path('../Models/model.pt'), verbose=False)
-model = YOLO(Path('Models/model.pt'), verbose=False)
+# model = YOLO(Path('Models/model.pt'), verbose=False)
 
 
 class Box:
 	def __init__(self, x1, y1, x2, y2):
-		self.x1 = x1; self.y1 = y1
-		self.x2 = x2; self.y2 = y2
-		self.x = (x1 + x2)/2
-		self.y = (y1 + y2)/2
+		self.x1 = int(x1); self.y1 = int(y1)
+		self.x2 = int(x2); self.y2 = int(y2)
+		self.x = int((x1 + x2)/2)
+		self.y = int((y1 + y2)/2)
 
-def detect(img) -> tuple[Results, int, list[Box]] :
+def detect(img, result:list[tuple[Results, int, list[Box]]]|None = None) -> tuple[Results, int, list[Box]]|None :
 	"""
 	Pass a image and it will return a tuple of:
 	\tThe results object made by YOLO
 	\tA int of the number of detected guns
 	\tA list of Box classes which contains the gun locations
+	If you pass in a list into the second pram it will append the output to the list instead
 	"""
-	result:Results = model(img, verbose=False)[0]
-	boxesNp = result.boxes.xyxy.numpy()
+	modelResult:Results = model(img, verbose=False)[0]
+	boxesNp = modelResult.boxes.xyxy.numpy()
 	numDetections = boxesNp.shape[0]
 	boxes = []
 	for i in range(numDetections):
 		box = boxesNp[i]
 		boxes.append(Box(box[0], box[1], box[2], box[3]))
-	return result, numDetections, boxes
+	if result is None:
+		return modelResult, numDetections, boxes
+	result.append((modelResult, numDetections, boxes))
