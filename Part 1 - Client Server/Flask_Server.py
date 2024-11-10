@@ -171,6 +171,8 @@ def show_client(addr, client_socket):
 
             time_of_last_email = datetime.now()
 
+            time_of_last_detection = datetime.now()
+
             image_processing_boxs = []
             image_processing_thread_result = None
             image_processing_thread = None
@@ -232,7 +234,7 @@ def show_client(addr, client_socket):
                 text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
                 frame = draw_text_on_frame(frame, text_top, (10, 30))
 
-                text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location}"
+                text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location} | LD: {(datetime.now() - time_of_last_detection).total_seconds()}"
                 height, width, _ = frame.shape
                 frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
 
@@ -249,6 +251,7 @@ def show_client(addr, client_socket):
                 if image_processing_thread == None:
                     image_processing_thread_result = []
                     image_processing_thread = threading.Thread(target=detect, args=(frame, image_processing_thread_result))
+                    time_of_last_detection = datetime.now()
                     image_processing_thread.start()
 
                 for box in image_processing_boxs:
