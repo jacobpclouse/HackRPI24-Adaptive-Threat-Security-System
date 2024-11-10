@@ -8,7 +8,7 @@
           <q-avatar>
               <img src="eye_white.svg">
             </q-avatar>
-          Online Security System -- backup
+          CRIME CATCHER -- backup
         </q-toolbar-title>
         <!-- Show logout button only when user is logged in -->
         <q-btn flat @click="logout" v-if="isLoggedIn">Logout</q-btn>

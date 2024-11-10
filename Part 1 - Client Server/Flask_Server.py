@@ -145,8 +145,8 @@ def show_client(addr, client_socket):
             data = b""
             payload_size = struct.calcsize("Q")
 
-            # fourcc = cv2.VideoWriter_fourcc(*'H264')
-            fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
+            fourcc = cv2.VideoWriter_fourcc(*'H264')
+            # fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
 
             out = None
             filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
