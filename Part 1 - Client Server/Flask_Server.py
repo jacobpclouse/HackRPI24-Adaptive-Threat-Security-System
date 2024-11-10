@@ -48,10 +48,10 @@ FLASK_PORT = 5000
 
 createFolderIfNotExists(OUTPUT_FOLDER_NAME)
 
-default_resolutions = ['480x320','640x480', '800x600', '1024x768', '1280x720', '1920x1080']
+default_resolutions = ['480','640', '800', '1024', '1280', '1920']
 default_columns = [1, 2, 3, 4]
 
-current_resolution = '480x320'
+current_resolution = '480'
 current_columns = 3
 
 # Initialize Tkinter window
@@ -223,9 +223,16 @@ def show_client(addr, client_socket):
                 elapsed_time = (current_time - true_start_time).total_seconds()
                 fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
 
+                #resize to allow for higher resilution text
+                (h, w) = frame.shape[:2]
+                new_width = 1600
+                aspect_ratio = h / w
+                new_height = int(new_width * aspect_ratio)
+                frame = cv2.resize(frame, (new_width, new_height))
+
                 # Add top and bottom overlay text
                 text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
-                frame = draw_text_on_frame(frame, text_top, (10, 30))
+                frame = draw_text_on_frame(frame, text_top, (10, 40))
 
                 text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location} | LD: {(datetime.now() - time_of_last_detection).total_seconds():.2f}"
                 height, width, _ = frame.shape
@@ -235,12 +242,14 @@ def show_client(addr, client_socket):
                 if recording:
                     # pass frame into model here
                     if image_processing_thread is not None and not image_processing_thread.is_alive():
-                        result, numDetections, boxes = image_processing_thread_result[0]
+                        image, numDetections, boxes = image_processing_thread_result[0]
                         image_processing_thread = None
                         image_processing_boxs = boxes
                         if DO_ALERT_EMAIL and numDetections > 0 and (datetime.now() - time_of_last_email).total_seconds() > 30:
                             time_of_last_email = datetime.now()
-                            threading.Thread(target=sendEmail, args=(ALERT_EMAIL, "Detected Weapon", text_bottom, result.plot())).start()
+                            threading.Thread(target=sendEmail, args=(ALERT_EMAIL, "Detected Weapon", text_bottom, image)).start()
+                    for box in image_processing_boxs:
+                        box.draw(frame)
 
                     if image_processing_thread == None:
                         image_processing_thread_result = []
@@ -248,8 +257,7 @@ def show_client(addr, client_socket):
                         time_of_last_detection = datetime.now()
                         image_processing_thread.start()
 
-                    for box in image_processing_boxs:
-                        frame = cv2.rectangle(frame, (box.x1, box.y1), (box.x2, box.y2), (0, 0, 255), 2)
+                    
                     # end detect
                     out.write(frame)
 
@@ -289,7 +297,8 @@ def show_client(addr, client_socket):
 
 def update_display():
     global current_resolution, current_columns
-    res_width, res_height = map(int, current_resolution.split('x'))
+    res_width = int(current_resolution)
+    
     max_columns = current_columns
     row, col = 0, 0
 
@@ -300,6 +309,9 @@ def update_display():
     for addr in list(frames.keys()):
         try:
             frame = frames[addr]
+            (h, w) = frame.shape[:2]
+            aspect_ratio = h / w
+            res_height = int(res_width * aspect_ratio)
             frame_resized = cv2.resize(frame, (res_width, res_height))
             frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
             image = Image.fromarray(frame_rgb)
@@ -313,13 +325,12 @@ def update_display():
             if col >= max_columns:
                 col = 0
                 row += 1
-        except:
-            print("uh oh we hit the exception in update display!")
-            pass
+        except Exception as e:
+            print("uh oh we hit the exception in update display!:")
+            print(e)
 
     # Update every 33 milliseconds
     video_frame.after(33, update_display)
-
 
 def start_server():
     setup_database()

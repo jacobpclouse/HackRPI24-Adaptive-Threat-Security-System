@@ -7,7 +7,7 @@ import socket
 import cv2
 
 # draw text on frame:
-def draw_text_on_frame(frame, text, position, font_scale=0.5, color=(255, 255, 255), thickness=2):
+def draw_text_on_frame(frame, text, position, font_scale=1.3, color=(255, 255, 255), thickness=3):
 # def draw_text_on_frame(frame, text, position, font_scale=0.7, color=(255, 255, 255), thickness=2):
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame, text, position, font, font_scale, color, thickness, cv2.LINE_AA)
