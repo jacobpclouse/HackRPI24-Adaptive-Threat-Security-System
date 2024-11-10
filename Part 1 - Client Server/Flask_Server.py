@@ -421,6 +421,26 @@ theme_dropdown.set('darkly')
 theme_dropdown.bind("<<ComboboxSelected>>", change_theme)
 theme_dropdown.pack(pady=5)
 
+
+# -------
+# Add a label and entry for the alert email
+email_label = ttk.Label(root, text="Enter Alert Email Address:")
+email_label.pack(pady=5)
+email_entry = ttk.Entry(root, width=30)
+email_entry.insert(0, ALERT_EMAIL)  # Set default email in the entry box
+email_entry.pack(pady=5)
+
+def update_alert_email():
+    global ALERT_EMAIL
+    ALERT_EMAIL = email_entry.get()
+    print(f"Updated ALERT_EMAIL: {ALERT_EMAIL}")
+
+# Add a button to update the email
+update_email_button = ttk.Button(root, text="Update Email", command=update_alert_email)
+update_email_button.pack(pady=5)
+# -------
+
+
 # Start and Stop buttons
 button_frame = ttk.Frame(root)
 button_frame.pack(pady=10)
