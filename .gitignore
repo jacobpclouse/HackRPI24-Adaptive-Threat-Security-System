@@ -1,7 +1,9 @@
 /venvName
 venvName
+/CLIENT_VIDEO_STORAGE
+CLIENT_VIDEO_STORAGE
 *.mp4
 *.db
 *.pyc
+package-lock.json
 passwords.json
-/CLIENT_VIDEO_STORAGE

@@ -14,10 +14,16 @@ from ttkbootstrap import Style
 import tkinter as tk
 import tkinter.messagebox as messagebox
 from pathlib import Path
-from flask import Flask, Response
+from flask import Flask, Response, jsonify
+from flask_cors import CORS
 
 from Shared_Func.emailer import sendEmail
 from Shared_Func.gunDetection import detect
+#added by dayyan 
+from detect import detect_motion  
+# from Client import detect_motion
+#IMPORT TIME 
+import time
 
 from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
                                                 createFolderIfNotExists, sanitize_filename,
@@ -54,6 +60,7 @@ root = ttk.Window(themename="darkly")
 root.title("Crime Catcher - Server")
 
 app = Flask(__name__)  # Initialize Flask app for API
+CORS(app)  # This will enable CORS for all routes
 
 icon_path = Path(os.path.join("Shared_Func","eye.ico"))
 if icon_path.exists():
@@ -132,7 +139,15 @@ def save_metadata(metadata, filename):
 def show_client(addr, client_socket):
     global frames, frame_count, start_time_dict
     try:
+        cap = cv2.VideoCapture(0)
         print(f"CLIENT {addr} CONNECTED!")
+
+        # Initialize baseline for motion detection
+        baseline = None  
+        # Initialize variables for recording state
+        recording = False
+        out = None # VideoWriter object
+        
         if client_socket:
             metadata_size = struct.unpack("Q", client_socket.recv(struct.calcsize("Q")))[0]
             metadata_bytes = client_socket.recv(metadata_size)
@@ -144,16 +159,14 @@ def show_client(addr, client_socket):
             start_time = datetime.now()
             start_time_dict[addr] = start_time
             frame_count[addr] = 0
-            
-            data = b""
-            payload_size = struct.calcsize("Q")
-            fourcc = cv2.VideoWriter_fourcc(*'H264')
 
+            data = b""  # Buffer for receiving frame data
+            payload_size = struct.calcsize("Q")
             out = None
+
+            fourcc = cv2.VideoWriter_fourcc(*'H264')
             filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
             video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
-
-            stop_time = None
             metadata_filename = video_filename.replace('.mp4', '.json')
 
             time_of_last_email = datetime.now()
@@ -163,6 +176,14 @@ def show_client(addr, client_socket):
             image_processing_thread = None
 
             # following code is based off GPT
+            # fourcc = cv2.VideoWriter_fourcc(*'H264')
+            # # fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
+            # filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
+            # video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
+            # stop_time = None
+            # metadata_filename = video_filename.replace('.mp4', '.json')
+            
+            # Stream processing loop
             while True:
                 while len(data) < payload_size:
                     packet = client_socket.recv(4 * 1024)
@@ -181,11 +202,33 @@ def show_client(addr, client_socket):
                 data = data[msg_size:]
                 frame = pickle.loads(frame_data)
 
+                # Initialize baseline for motion detection if needed
+                if baseline is None:
+                    baseline_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    baseline_gray = cv2.GaussianBlur(baseline_gray, (21, 21), 0)
+                    baseline = baseline_gray
+
+                # Detect motion and handle recording
+                motion_detected, baseline = detect_motion(frame, baseline)
+                if motion_detected and not recording:
+                    # Start recording if motion is detected
+                    out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                    recording = True
+                    print("Recording started...")
+
+                elif not motion_detected and recording:
+                    # Stop recording if no motion detected
+                    out.release()
+                    recording = False
+                    print("Recording stopped.")
+
+                # Always add overlay text to the frame
                 frame_count[addr] += 1
                 current_time = datetime.now()
                 elapsed_time = (current_time - start_time_dict[addr]).total_seconds()
                 fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
 
+                # Add top and bottom overlay text
                 text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
                 frame = draw_text_on_frame(frame, text_top, (10, 30))
 
@@ -213,14 +256,141 @@ def show_client(addr, client_socket):
 
                 # end detect
 
+                # Store the frame for UI display
                 frames[addr] = frame
 
-                if out is None:
-                    out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
-                out.write(frame)
+                # Write the frame to the video file if recording
+                if recording:
+                    out.write(frame)
 
+            # Cleanup after the loop
             if out is not None:
                 out.release()
+
+
+
+
+
+
+
+
+
+
+
+
+            # while True:
+            #     while len(data) < payload_size:
+            #         packet = client_socket.recv(4 * 1024)
+            #         if not packet:
+            #             break
+            #         data += packet
+            #     if not data:
+            #         break
+            #     packed_msg_size = data[:payload_size]
+            #     data = data[payload_size:]
+            #     msg_size = struct.unpack("Q", packed_msg_size)[0]
+
+            #     while len(data) < msg_size:
+            #         data += client_socket.recv(4 * 1024)
+            #     frame_data = data[:msg_size]
+            #     data = data[msg_size:]
+            #     frame = pickle.loads(frame_data)
+            #     #Dayyan Added
+            #     if baseline is None: # Initialize baseline only once
+            #         baseline_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            #         baseline_gray = cv2.GaussianBlur(baseline_gray, (21, 21), 0)  # Smooth the baseline    
+            #         baseline = baseline_gray   
+                
+            #     # Motion detection: process the frame to detect motion
+            #     motion_detected, baseline = detect_motion(frame, baseline)
+
+            #     if motion_detected:
+            #         # Handle motion detection logic here (e.g., start recording, alert, etc.)
+            #         print("Motion detected in the frame!")
+            #         if not recording:
+            #             # Start recording
+            #             output_video_file = f'motion_recording_{time.time()}.mp4'  # Unique file name #append onto the file path
+            #             # fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            #             fourcc = cv2.VideoWriter_fourcc(*'H264')
+
+
+            #             # frame processing !
+            #             frame_count[addr] += 1
+            #             current_time = datetime.now()
+            #             elapsed_time = (current_time - start_time_dict[addr]).total_seconds()
+            #             fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
+
+            #             text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            #             frame = draw_text_on_frame(frame, text_top, (10, 30))
+
+            #             text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location}"
+            #             height, width, _ = frame.shape
+            #             frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
+            #     # frames[addr] = frame
+
+
+            #             # out = cv2.VideoWriter(output_video_file, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+            #             out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+                        
+                        
+            #             # fourcc = cv2.VideoWriter_fourcc(*'H264')
+            #             # filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
+            #             # video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
+            #             # stop_time = None
+            #             # metadata_filename = video_filename.replace('.mp4', '.json')
+
+
+            #             # out = cv2.VideoWriter(video_filename, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+
+
+
+            #             recording = True
+            #             print("Recording started...")
+
+            #         # Write the current frame to the video file
+            #         out.write(frame) 
+
+            #     else:  # Motion not detected
+            #         if recording:
+            #         # Stop recording
+            #             out.release()
+            #             recording = False
+            #             print("Recording stopped.")
+                    
+
+            #     # Proceed with normal frame processing (display, FPS calculation, etc.)
+            #     frame_count[addr] += 1
+            #     current_time = datetime.now()
+            #     elapsed_time = (current_time - start_time_dict[addr]).total_seconds()
+            #     fps = frame_count[addr] / elapsed_time if elapsed_time > 0 else 0
+
+            #     text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
+            #     frame = draw_text_on_frame(frame, text_top, (10, 30))
+
+            #     text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location}"
+            #     height, width, _ = frame.shape
+            #     frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
+
+
+
+            #     # frames[addr] = frame
+            #     # pass frame into model here --- ******
+            #     # result, numDetections, boxes = detect(frame)
+            #     # frame = result.plot()
+            #     # end detect --- ******
+
+            #     # frame = np.zeros(frame.shape)
+            #     frames[addr] = frame
+
+
+            #     # if out is None:
+            #     #     out = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
+            #     # out.write(frame)
+
+
+
+            # if out is not None:
+            #     out.release()
 
         del frames[addr]
         client_socket.close()
@@ -228,7 +398,7 @@ def show_client(addr, client_socket):
     except Exception as e:
         print(f"CLIENT {addr} DISCONNECTED: {e}")
         frames.clear()
-        
+
         stop_time = datetime.now()
 
         if addr in start_time_dict:
@@ -236,6 +406,7 @@ def show_client(addr, client_socket):
             save_metadata(metadata, metadata_filename)
             insert_metadata(camera_name, camera_ip, location, start_time_dict[addr], stop_time, metadata_filename)
 
+        # out.release() # for dayyan stuff?
 
 def update_display():
     global current_resolution, current_columns
@@ -312,6 +483,12 @@ def stream_generator(addr):
         else:
             break
 
+
+# @app.route('/stream/0')
+# def stream_video():
+#     return Response(open("path_to_video.mp4", "rb"), mimetype="video/mp4")
+
+
 @app.route('/stream/<int:client_id>')
 def video_feed(client_id):
     """Flask route to stream video of a particular client by ID."""
@@ -321,7 +498,6 @@ def video_feed(client_id):
                         mimetype='multipart/x-mixed-replace; boundary=frame')
     return "Client stream not available", 404
 
-# Add more existing functions here...
 
 def start_flask_server():
     app.run(host=FLASK_URL, port=FLASK_PORT)
