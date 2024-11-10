@@ -1,13 +1,14 @@
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 from pathlib import Path
-
+import torch
 
 # load 
-# model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False, device='gpu')
+model = YOLO(Path('Part 1 - Client Server/Models/model.pt'), verbose=False)
 # model = YOLO(Path('../Models/model.pt'), verbose=False)
-model = YOLO(Path('Models/model.pt'), verbose=False)
-model.to('cuda')
+# model = YOLO(Path('Models/model.pt'), verbose=False)
+if torch.cuda.is_available():
+    model.to('cuda')
 
 
 class Box:

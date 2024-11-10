@@ -7,3 +7,4 @@ CRIME CATCHER
 # Sources:
 - Text on Video with OpenCV: https://www.geeksforgeeks.org/python-opencv-write-text-on-video/
 - Ascii art generated using: http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
+- Guns detection model from: https://www.kaggle.com/code/ahmedgaitani/guns-object-detection-code

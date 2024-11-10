@@ -20,7 +20,7 @@ from flask_cors import CORS
 from Shared_Func.emailer import sendEmail
 from Shared_Func.gunDetection import detect
 #added by dayyan 
-from detect import detect_motion  
+from Shared_Func.detect import detect_motion  
 # from Client import detect_motion
 #IMPORT TIME 
 import time
@@ -176,14 +176,6 @@ def show_client(addr, client_socket):
             image_processing_boxs = []
             image_processing_thread_result = None
             image_processing_thread = None
-
-            # following code is based off GPT
-            # fourcc = cv2.VideoWriter_fourcc(*'H264')
-            # # fourcc = cv2.VideoWriter_fourcc(*'HEVC')  # H.265 encoder
-            # filename = f'{camera_name}_loc_{location}_time_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.mp4'
-            # video_filename = os.path.join(OUTPUT_FOLDER_NAME, filename)
-            # stop_time = None
-            # metadata_filename = video_filename.replace('.mp4', '.json')
             
             # Stream processing loop
             while True:
@@ -234,37 +226,34 @@ def show_client(addr, client_socket):
                 text_top = f"{camera_ip} | {current_time.strftime('%Y-%m-%d %H:%M:%S')}"
                 frame = draw_text_on_frame(frame, text_top, (10, 30))
 
-                text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location} | LD: {(datetime.now() - time_of_last_detection).total_seconds()}"
+                text_bottom = f"FPS: {fps:.2f} | CAM: {camera_name} | BLDG: {location} | LD: {(datetime.now() - time_of_last_detection).total_seconds():.2f}"
                 height, width, _ = frame.shape
                 frame = draw_text_on_frame(frame, text_bottom, (10, height - 30))
 
-                
-                # pass frame into model here
-                if image_processing_thread is not None and not image_processing_thread.is_alive():
-                    result, numDetections, boxes = image_processing_thread_result[0]
-                    image_processing_thread = None
-                    image_processing_boxs = boxes
-                    if DO_ALERT_EMAIL and numDetections > 0 and (datetime.now() - time_of_last_email).total_seconds() > 10:
-                        time_of_last_email = datetime.now()
-                        threading.Thread(target=sendEmail, args=(ALERT_EMAIL, "Detected Weapon", text_bottom, result.plot())).start()
+                # Write the frame to the video file if recording
+                if recording:
+                    # pass frame into model here
+                    if image_processing_thread is not None and not image_processing_thread.is_alive():
+                        result, numDetections, boxes = image_processing_thread_result[0]
+                        image_processing_thread = None
+                        image_processing_boxs = boxes
+                        if DO_ALERT_EMAIL and numDetections > 0 and (datetime.now() - time_of_last_email).total_seconds() > 30:
+                            time_of_last_email = datetime.now()
+                            threading.Thread(target=sendEmail, args=(ALERT_EMAIL, "Detected Weapon", text_bottom, result.plot())).start()
 
-                if image_processing_thread == None:
-                    image_processing_thread_result = []
-                    image_processing_thread = threading.Thread(target=detect, args=(frame, image_processing_thread_result))
-                    time_of_last_detection = datetime.now()
-                    image_processing_thread.start()
+                    if image_processing_thread == None:
+                        image_processing_thread_result = []
+                        image_processing_thread = threading.Thread(target=detect, args=(frame, image_processing_thread_result))
+                        time_of_last_detection = datetime.now()
+                        image_processing_thread.start()
 
-                for box in image_processing_boxs:
-                    frame = cv2.rectangle(frame, (box.x1, box.y1), (box.x2, box.y2), (0, 0, 255), 2)
-
-                # end detect
+                    for box in image_processing_boxs:
+                        frame = cv2.rectangle(frame, (box.x1, box.y1), (box.x2, box.y2), (0, 0, 255), 2)
+                    # end detect
+                    out.write(frame)
 
                 # Store the frame for UI display
                 frames[addr] = frame
-
-                # Write the frame to the video file if recording
-                if recording:
-                    out.write(frame)
 
             # Cleanup after the loop
             if out is not None:
