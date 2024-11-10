@@ -48,7 +48,7 @@ def myLogo():
     # print("                                                                   __/ |          __/ |                      ")
     # print("                                                                  |___/          |___/                       ")
     print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
-    print("Safety through Vigilance! Safety through Vigilance! Brought to you by Drew, Ben, Dayyan and Jacob")
+    print("Safety through Vigilance! Brought to you by Drew, Ben, Dayyan and Jacob")
     print('--- === --- === ------ === --- === ------ === --- === ---  === ---  === --- ')
 
 
