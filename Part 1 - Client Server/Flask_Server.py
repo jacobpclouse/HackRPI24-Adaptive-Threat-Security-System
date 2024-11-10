@@ -22,12 +22,12 @@ from Shared_Func.gunDetection import detect
 #added by dayyan 
 from Shared_Func.detect import detect_motion  
 # from Client import detect_motion
-#IMPORT TIME 
-import time
 
-from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
-                                                createFolderIfNotExists, sanitize_filename,
-                                                emptyFolder, clear_screen, eye_animation, get_private_ip)
+
+from Shared_Func.utility_functions import (myLogo,draw_text_on_frame,
+                                                createFolderIfNotExists,
+                                                eye_animation, get_private_ip)
+
 
 
 ALERT_EMAIL = "benherman345@gmail.com"

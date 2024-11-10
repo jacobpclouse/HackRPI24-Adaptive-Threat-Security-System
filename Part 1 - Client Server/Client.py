@@ -4,7 +4,6 @@ import struct
 import threading
 import cv2
 import os
-import pyshine as ps
 from PIL import Image, ImageTk
 import imutils
 import tkinter as tk
@@ -12,12 +11,9 @@ from tkinter import filedialog, messagebox
 from ttkbootstrap import Style
 from ttkbootstrap import ttk
 from pathlib import Path # for ico
-#just added
-import numpy as np
-import time
-from Shared_Func.utility_functions import (myLogo, defang_datetime, draw_text_on_frame,
-                                                createFolderIfNotExists, sanitize_filename,
-                                                emptyFolder, clear_screen, eye_animation, get_private_ip)
+
+from Shared_Func.utility_functions import (draw_text_on_frame, get_private_ip)
+
 
 GLOBAL_WIDTH = 480
 
@@ -109,7 +105,8 @@ def start_client():
                 client_socket.sendall(message)
 
                 # Draw a red outline around the frame -- TO SHOW WHEN RECORDING!
-                cv2.rectangle(frame, (5, 5), (715, 515), (0, 0, 250), 4)
+                cv2.rectangle(frame, (5, 5), (frame.shape[1]-5,frame.shape[0]-5), (0, 0, 250), 4)
+                # cv2.rectangle(frame, (5, 5), (715, 515), (0, 0, 250), 4)
 
                 # Display the frame in the Tkinter window
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
