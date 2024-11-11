@@ -2,7 +2,7 @@
 > Safety Through Vigilance!
 #### REPO: HackRPI24-Adaptive-Threat-Security-System - Submitted to HackRPI 2024 Urban Upgrades
 [![GitHub contributors](https://img.shields.io/github/contributors/jacobpclouse/HackRPI24-Adaptive-Threat-Security-System.svg)]("https://github.com/jacobpclouse/HackRPI24-Adaptive-Threat-Security-System/graphs/contributors") <img src="https://img.shields.io/badge/HackRPI%202024-Urban%20Upgrades-red" />
-<img src="https://img.shields.io/badge/Technologies-openCV%20Tkinter%20flask%20Quasar%20Vuejs%20sqlite%20yolo%20computer%20vision-blue" />
+<img src="https://img.shields.io/badge/Technologies-openCV%20Tkinter%20flask%20Quasar%20Vuejs%20sqlite%20yolo%20kaggle-blue" />
 ## What it does
 Crime Catcher is a solution to keeping our urban spaces safe and secure.
 
