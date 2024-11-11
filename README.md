@@ -1,6 +1,6 @@
 # CRIME CATCHER
 > Safety Through Vigilance!
-#### REPO: HackRPI24-Adaptive-Threat-Security-System - Submitted to HackRPI 2024 Urban Upgrades
+#### REPO: HackRPI24-Adaptive-Threat-Security-System - Submitted <a href="https://devpost.com/software/crime-catcher">via Devpost</a> to HackRPI 2024 Urban Upgrades
 [![GitHub contributors](https://img.shields.io/github/contributors/jacobpclouse/HackRPI24-Adaptive-Threat-Security-System.svg)]("https://github.com/jacobpclouse/HackRPI24-Adaptive-Threat-Security-System/graphs/contributors") <img src="https://img.shields.io/badge/HackRPI%202024-Urban%20Upgrades-red" />
 <img src="https://img.shields.io/badge/Technologies-openCV%20Tkinter%20flask%20Quasar%20Vuejs%20sqlite%20yolo%20kaggle-blue" />
 ## What it does
