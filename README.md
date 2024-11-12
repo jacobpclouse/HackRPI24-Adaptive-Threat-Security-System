@@ -22,6 +22,15 @@ Additionally, we save and catalog videos and metadata using an SQLite database. 
 - For Part 2 (the vue.js/quasar and flask dashboard) we have a login system that enforces users to login before they can access the video metadata, ensuring the system is attributable
 - We have motion detection in our server stream so only eventful data is saved to disk, conserving bandwidth
 
+## Technologies Used:
+![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Kaggle](https://img.shields.io/badge/Kaggle-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)
+![YOLO](https://img.shields.io/badge/YOLO-00FFFF?style=for-the-badge&logo=yolo&logoColor=black)
+![Quasar](https://img.shields.io/badge/Quasar-1976D2?style=for-the-badge&logo=quasar&logoColor=white)
+
 ## Challenges we ran into
 - Working with Tkinter's documentation and using the CUDA framework in our server for GPU acceleration
 
@@ -41,13 +50,4 @@ After our MVP, we want to iterate and add new features like remote client activa
 - Text on Video with OpenCV: https://www.geeksforgeeks.org/python-opencv-write-text-on-video/
 - Ascii art generated using: http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
 - Guns detection model from: https://www.kaggle.com/code/ahmedgaitani/guns-object-detection-code
-
-## Technologies Used:
-[!OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
-[!Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
-[!Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
-[!SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-[!Kaggle](https://img.shields.io/badge/Kaggle-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)
-[!YOLO](https://img.shields.io/badge/YOLO-00FFFF?style=for-the-badge&logo=yolo&logoColor=black)
-[!Quasar](https://img.shields.io/badge/Quasar-1976D2?style=for-the-badge&logo=quasar&logoColor=white)
 
